@@ -1,18 +1,19 @@
 
 import React from 'react';
+import { FormContext } from '../Components/Form/withForm'
 
 class SyntheticForm extends React.PureComponent {
     constructor() {
       super();
       this._timeoutID = null;
       this._isManagingFocus = false;
-      this._onFocus = this._onFocus.bind(this)
-      this._onBlur = this._onBlur.bind(this)
-      this._onEnter = this._onEnter.bind(this)
-      this._onClick = this._onClick.bind(this)
+      this.onFocus = this.onFocus.bind(this)
+      this.onBlur = this.onBlur.bind(this)
+      this.onKeyDown = this.onKeyDown.bind(this)
+      this.onClick = this.onClick.bind(this)
     }
 
-    _onClick(e){
+    onClick(e){
       const { onSubmit=()=>{}, onReset=()=>{} } = this.props
       const { type } = e.toElement
       if(type === 'submit'){
@@ -21,7 +22,7 @@ class SyntheticForm extends React.PureComponent {
         onReset(e)  // Trigger reset
       }
     }
-    _onEnter(e){
+    onKeyDown(e){
       const { tagName='' } = document.activeElement || {}
       const inputs = ['input', 'select', 'button', 'textarea'];
       const { onSubmit=()=>{} } = this.props
@@ -34,22 +35,22 @@ class SyntheticForm extends React.PureComponent {
         onSubmit(e) // Trigger submit
       }
     }
-    _onBlur(e) {
+    onBlur(e) {
       e.stopPropagation(); // Prevent bubbling upwards
       this._timeoutID = setTimeout(() => {
         if (this._isManagingFocus) {
-          document.body.removeEventListener("keydown",this._onEnter);
-          document.body.removeEventListener("click",this._onClick);
+          document.body.removeEventListener("keydown",this.onKeyDown);
+          document.body.removeEventListener("click",this.onClick);
           this._isManagingFocus = false;
         }
       }, 0);
     }
-    _onFocus(e) {
+    onFocus(e) {
       e.stopPropagation(); // Prevent bubbling upwards
       clearTimeout(this._timeoutID);
       if (!this._isManagingFocus) {
-        document.body.addEventListener("keydown",this._onEnter);
-        document.body.addEventListener("click",this._onClick);
+        document.body.addEventListener("keydown",this.onKeyDown);
+        document.body.addEventListener("click",this.onClick);
         this._isManagingFocus = true;
       }
     }
@@ -57,12 +58,13 @@ class SyntheticForm extends React.PureComponent {
     render() {
      const { children } = this.props
       return (
-        <div role="form" onBlur={this._onBlur} onFocus={this._onFocus}>
+        <div role="form" onBlur={this.onBlur} onFocus={this.onFocus}>
             {children}
         </div>
       );
     }
 
 };
+SyntheticForm.contextType = FormContext
 
 export default SyntheticForm;
